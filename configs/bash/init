@@ -1,0 +1,25 @@
+if command -v mise &> /dev/null; then
+  eval "$(mise activate bash)"
+fi
+
+if command -v starship &> /dev/null; then
+  eval "$(starship init bash)"
+fi
+
+if command -v zoxide &> /dev/null; then
+  eval "$(zoxide init bash)"
+fi
+
+[ -f /usr/share/doc/fzf/examples/key-bindings.bash ] && source /usr/share/doc/fzf/examples/key-bindings.bash
+[ -f /usr/share/doc/fzf/examples/completion.bash ] && source /usr/share/doc/fzf/examples/completion.bash
+
+# Editor used by CLI
+export EDITOR="vim"
+export SUDO_EDITOR="$EDITOR"
+export BAT_THEME=ansi
+
+export GIT_HOME=$HOME/git
+
+if [ -d "$HOME/apps/android-sdk" ]; then
+  export ANDROID_HOME=$HOME/apps/android-sdk
+fi

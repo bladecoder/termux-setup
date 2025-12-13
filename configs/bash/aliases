@@ -1,0 +1,68 @@
+# File system
+alias ls='eza --group-directories-first --icons=auto'
+alias ll='eza -lh --group-directories-first --icons=auto'
+alias lsa='ls -a'
+alias lt='eza --tree --level=2 --long --icons --git'
+alias lta='lt -a'
+alias ff="fzf --preview 'bat --style=numbers --color=always {}'"
+alias cd="zd"
+
+zd() {
+  if [ $# -eq 0 ]; then
+    builtin cd ~ && return
+  elif [ -d "$1" ]; then
+    builtin cd "$1"
+  else
+    z "$@" && printf "\U000F17A9 " && pwd || echo "Error: Directory not found"
+  fi
+}
+open() {
+  xdg-open "$@" >/dev/null 2>&1 &
+}
+
+# Directories
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# Tools
+alias d='docker'
+n() { if [ "$#" -eq 0 ]; then nvim .; else nvim "$@"; fi; }
+
+if command -v duf >/dev/null 2>&1; then
+  alias df=duf
+fi
+
+if command -v fdfind >/dev/null 2>&1; then
+  alias fd=fdfind
+fi
+
+# Git
+alias g='git'
+alias gcm='git commit -m'
+alias gcam='git commit -a -m'
+alias gcad='git commit -a --amend'
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git log --oneline --graph --decorate'
+
+# History
+alias h='history'
+alias hl='history | less'
+alias hs='history | grep'
+alias hsi='history | grep -i'
+
+alias please='sudo $(fc -ln -1)' # Re-run last command with sudo
+alias up='sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && sudo snap refresh' # Update system
+
+# Current project aliases
+alias cdr="cd $GIT_HOME/robie1"
+alias cdb="cd $GIT_HOME/bonasera5"
+alias cdbb="cd ~/Drive/prj/bonasera5"
+alias cda="cd $GIT_HOME/agent1"
+alias cdri="cd $GIT_HOME/robie1/images-raw"
+alias cdrr="cd ~/Drive/prj/Robie1"
+
+alias emulator="$ANDROID_HOME/emulator/emulator -avd nexus_one"

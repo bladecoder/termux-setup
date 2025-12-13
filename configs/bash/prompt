@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Colors for the prompt (with brackets for correct usage in bash)
+COLOR_RESET="\[\033[0m\]"
+COLOR_BLUE="\[\033[34m\]"
+COLOR_GREEN="\[\033[32m\]"
+COLOR_RED="\[\033[31m\]"
+COLOR_YELLOW="\[\033[33m\]"
+COLOR_CYAN="\[\033[36m\]"
+COLOR_MAGENTA="\[\033[35m\]"
+
+# Variable to store the return code
+LAST_EXIT_CODE=0
+
+# Function to get git branch name
+git_branch() {
+  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
+}
+
+# Function for git branch status
+git_branch_status() {
+  if git rev-parse --is-inside-work-tree &>/dev/null; then
+    local branch=$(git_branch)
+    local branch_info=""
+    local push_pull_info=""
+
+    # Determine local changes status
+    if [[ -n $(git diff --cached --name-only 2>/dev/null) ]]; then
+      branch_info="${COLOR_YELLOW}${branch}${COLOR_RESET}"   # Staged changes (yellow)
+    elif [[ -n $(git status --porcelain 2>/dev/null) ]]; then
+      branch_info="${COLOR_RED}${branch}${COLOR_RESET}"      # Uncommitted changes (red)
+    else
+      branch_info="${COLOR_GREEN}${branch}${COLOR_RESET}"    # Clean working tree (green)
+    fi
+
+    # Check if there are commits to push or pull
+    if git rev-parse --abbrev-ref @'{u}' &>/dev/null; then
+      # There is a configured remote branch
+      local ahead=$(git rev-list --count @{u}..HEAD 2>/dev/null)
+      local behind=$(git rev-list --count HEAD..@{u} 2>/dev/null)
+
+      if [[ $ahead -gt 0 && $behind -gt 0 ]]; then
+        push_pull_info="${COLOR_YELLOW}⇅${COLOR_RESET}"  # Needs push and pull (yellow)
+      elif [[ $ahead -gt 0 ]]; then
+        push_pull_info="${COLOR_CYAN}↑${COLOR_RESET}"    # Needs push (up arrow) (cyan)
+      elif [[ $behind -gt 0 ]]; then
+        push_pull_info="${COLOR_MAGENTA}↓${COLOR_RESET}" # Needs pull (down arrow) (magenta)
+      fi
+    fi
+
+    echo -e "${branch_info}${push_pull_info} "
+  fi
+}
+
+# Function for prompt symbol
+prompt_symbol() {
+  if [[ $LAST_EXIT_CODE -eq 0 ]]; then
+    echo -e "${COLOR_GREEN}❯${COLOR_RESET}"  # Green
+  else
+    echo -e "${COLOR_RED}❯${COLOR_RESET}"    # Red
+  fi
+}
+
+
+# Function that runs before showing the prompt
+update_prompt() {
+  LAST_EXIT_CODE=$?
+
+  # Update terminal title with current directory
+  # after each command
+  case "$TERM" in
+        xterm*|rxvt*|screen*|tmux*)
+            echo -ne "\033]0;${PWD/#$HOME/\~}\007"
+            ;;
+  esac
+
+  PS1="${COLOR_BLUE}\w${COLOR_RESET} `git_branch_status``prompt_symbol` "
+}
+
+
+# Configure the update_prompt function to run before the prompt
+PROMPT_COMMAND=update_prompt
+
+# Define the prompt
+#PS1="\[\033[34m\]\w\[\033[0m\] \$(git_branch_status)\$(prompt_symbol) "
+
+# Update terminal title with current command
+#trap 'echo -ne "\033]0;[${BASH_COMMAND}]\007"' DEBUG

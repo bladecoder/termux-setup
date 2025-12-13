@@ -1,0 +1,5 @@
+# All the default aliases and functions
+# (don't mess with these directly, just overwrite them here!)
+source ~/.local/share/bash/rc
+
+# Add your own exports, aliases, and functions here.
