@@ -55,14 +55,6 @@ alias hs='history | grep'
 alias hsi='history | grep -i'
 
 alias please='sudo $(fc -ln -1)' # Re-run last command with sudo
-alias up='sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && sudo snap refresh' # Update system
-
-# Current project aliases
-alias cdr="cd $GIT_HOME/robie1"
-alias cdb="cd $GIT_HOME/bonasera5"
-alias cdbb="cd ~/Drive/prj/bonasera5"
-alias cda="cd $GIT_HOME/agent1"
-alias cdri="cd $GIT_HOME/robie1/images-raw"
-alias cdrr="cd ~/Drive/prj/Robie1"
+alias up='pkg update && pkgt upgrade -y' # Update system
 
 alias emulator="$ANDROID_HOME/emulator/emulator -avd nexus_one"

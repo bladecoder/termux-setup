@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sudo apt install -y vim
+pkg install -y vim
 
 cp ./configs/vimrc ~/.vimrc
 
