@@ -12,17 +12,28 @@ pkg upgrade -y
 pkg install -y curl git unzip wget
 
 termux_storage_mode="${TERMUX_SETUP_STORAGE:-auto}"
+termux_storage_path="$HOME/storage"
+
+run_termux_storage_setup() {
+    if [ -d "$termux_storage_path" ]; then
+        echo "Skipping termux-setup-storage ($termux_storage_path already exists)."
+        return 0
+    fi
+
+    termux-setup-storage
+}
+
 case "$termux_storage_mode" in
     auto)
         if command -v termux-setup-storage >/dev/null 2>&1 && [ -t 0 ]; then
-            termux-setup-storage
+            run_termux_storage_setup
         else
             echo "Skipping termux-setup-storage (non-interactive or unavailable)."
         fi
         ;;
     always)
         if command -v termux-setup-storage >/dev/null 2>&1; then
-            termux-setup-storage
+            run_termux_storage_setup
         else
             echo "termux-setup-storage is unavailable." >&2
             exit 1
