@@ -5,8 +5,8 @@ This is a shell-based Termux bootstrap repo.
 
 - `bootstrap.sh`: remote/bootstrap entrypoint.
 - `setup.sh`: local setup entrypoint.
-- `install/*.sh`: ordered core installers (`00_`, `10_`, `20_`, ...).
-- `install/optional/*.sh`: optional installers (Neovim, Android SDK, btop).
+- `scripts/*.sh`: ordered core installers (`00_`, `10_`, `20_`, ...).
+- `scripts/optional/*.sh`: optional installers (Neovim, Android SDK, btop).
 - `configs/`: tracked config files copied by installers.
 
 Prefer small, single-purpose installers and keep numeric prefixes so execution order is obvious.
@@ -15,9 +15,9 @@ Prefer small, single-purpose installers and keep numeric prefixes so execution o
 There is no compile step; development is script editing plus manual validation.
 
 - `sh bootstrap.sh`: clone-and-run setup.
-- `bash install/00_required.sh`: run one module while iterating.
-- `bash -n install/20_bash.sh`: syntax-check script changes.
-- `rg "pattern" install configs`: search scripts and configs quickly.
+- `bash scripts/00_required.sh`: run one module while iterating.
+- `bash -n scripts/20_bash.sh`: syntax-check script changes.
+- `rg "pattern" scripts configs`: search scripts and configs quickly.
 
 Run modules from repo root so relative paths like `./configs/...` resolve correctly.
 
@@ -34,7 +34,7 @@ Name scripts as `<order>_<action>.sh` (example: `30_dev-languages.sh`).
 ## Testing Guidelines
 No formal test framework is configured. Validate with:
 
-- Syntax checks: `bash -n install/<script>.sh`.
+- Syntax checks: `bash -n scripts/<script>.sh`.
 - Targeted dry runs on Termux.
 - Re-run checks to confirm idempotent behavior.
 

@@ -62,7 +62,7 @@ You are encouraged to fork it, adapt it, or use it as inspiration for your own s
 .
 ├── bootstrap.sh      # Entry point for one-command install
 ├── setup.sh          # Main setup logic
-├── scripts/          # Modular install/config scripts
+├── scripts/          # Modular setup scripts
 ├── configs/          # Configuration files
 └── README.md
 ```
@@ -72,6 +72,6 @@ You are encouraged to fork it, adapt it, or use it as inspiration for your own s
 All scripts are designed to be safely re-run.
 If something changes or breaks, you should be able to run the setup again without issues.
 
-```
-termux-setup > source scripts/vim.sh
+```sh
+bash scripts/30_vim.sh
 ```

@@ -1,5 +1,8 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 set -eu
 
 # Run installers
-for installer in ./scripts/terminal/*.sh; do source $installer; done
+shopt -s nullglob
+for installer in ./scripts/*.sh; do
+  bash "$installer"
+done
