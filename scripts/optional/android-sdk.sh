@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-#!/bin/bash
-#
 ### Termux SDK Installer
 #
 
@@ -18,8 +16,6 @@ arch="$(dpkg --print-architecture)"
 # Color Codes
 red="\e[0;31m"          # Red
 green="\e[0;32m"        # Green
-cyan="\e[0;36m"         # Cyan
-white="\e[0;37m"        # White
 nocol="\033[0m"         # Default
 
 # Functions
@@ -44,13 +40,13 @@ download_and_extract() {
   # Destination path for downloading the file
   dest="${4}"
 
-  cd ${dir}
+  cd "${dir}"
   do_download=true
-  if [[ -f ${dest} ]]; then
-    name=$(basename ${dest})
+  if [[ -f "${dest}" ]]; then
+    name=$(basename "${dest}")
     echo -e "${green}File ${name} already exists.${nocol}"
     echo "Do you want to skip the download process? ([${green}y${nocol}]es/[${red}N${nocol}]o): "
-    read skip
+    read -r skip
     if [[ "${skip}" = "y" || "${skip}" = "yes" || "${skip}" = "Y" || "${skip}" = "Yes" ]]; then
       do_download=false
     fi
@@ -59,24 +55,24 @@ download_and_extract() {
 
   if [[ "${do_download}" = "true" ]]; then
     echo -e "${green}Downloading ${name}...${nocol}"
-    curl -L -o ${dest} ${url}
+    curl -L -o "${dest}" "${url}"
     echo -e "${green}${name} has been downloaded.${nocol}"
     echo ""
   fi
 
-  if [[ ! -f ${dest} ]]; then
+  if [[ ! -f "${dest}" ]]; then
     echo -e "${red}The downloaded file ${name} does not exist! Aborting...${nocol}"
     exit 1
   fi
   # Extract the downloaded archive
   echo -e "${green}Extracting downloaded archive...${nocol}"
-  tar xvJf ${dest}
+  tar xvJf "${dest}"
   echo -e "${green}Extracted successfully${nocol}"
   echo ""
   # Delete the downloaded file
-  rm -vf ${dest}
+  rm -vf "${dest}"
   # cd into the previous working directory
-  cd ${CURRENT_DIR}
+  cd "${CURRENT_DIR}"
 }
 
 gen_data() {
@@ -86,34 +82,33 @@ gen_data() {
     echo ""
     exit 1
   fi
-  curl --silent -L -o ${manifest} ${manifest_url}
-  if ! [[ -s ${manifest} ]]; then
+  curl --silent -L -o "${manifest}" "${manifest_url}"
+  if ! [[ -s "${manifest}" ]]; then
     echo -e "${red}Problem fetching manifest!${nocol}"
     echo "Try again after some seconds"
     echo ""
-    if [[ -f ${manifest} ]] then
-      rm ${manifest}
+    if [[ -f "${manifest}" ]]; then
+      rm "${manifest}"
     fi
     exit 1
   fi
-  sdk_url=$(cat ${manifest} | jq -r .android_sdk)
-  sdk_file=${sdk_url##*/}
-  sdk_m_version=($(cat ${manifest} | jq .build_tools.${arch} | jq -r 'keys_unsorted[]'))
-  sdk_m_version=${sdk_m_version[0]}
+  sdk_url=$(jq -r '.android_sdk' "${manifest}")
+  sdk_file="${sdk_url##*/}"
+  sdk_m_version=$(jq -r --arg arch "${arch}" '.build_tools[$arch] | keys_unsorted[0]' "${manifest}")
   sdk_version=${sdk_m_version:1}
   sdk_version="${sdk_version//_/.}"
-  build_tools_url=($(cat ${manifest} | jq .build_tools.${arch} | jq -r .${sdk_m_version}))
-  build_tools_file=${build_tools_url##*/}
-  cmdline_tools_url=$(cat ${manifest} | jq -r .cmdline_tools)
-  cmdline_tools_file=${cmdline_tools_url##*/}
-  platform_tools_url=($(cat ${manifest} | jq .platform_tools.${arch} | jq -r .${sdk_m_version}))
-  platform_tools_file=${platform_tools_url##*/}
-  rm ${manifest}
+  build_tools_url=$(jq -r --arg arch "${arch}" --arg ver "${sdk_m_version}" '.build_tools[$arch][$ver]' "${manifest}")
+  build_tools_file="${build_tools_url##*/}"
+  cmdline_tools_url=$(jq -r '.cmdline_tools' "${manifest}")
+  cmdline_tools_file="${cmdline_tools_url##*/}"
+  platform_tools_url=$(jq -r --arg arch "${arch}" --arg ver "${sdk_m_version}" '.platform_tools[$arch][$ver]' "${manifest}")
+  platform_tools_file="${platform_tools_url##*/}"
+  rm "${manifest}"
 }
 
 help() {
   cat <<-_EOL_
-$(echo -e "${green}Usage:${nocol}")
+${green}Usage:${nocol}
 -h,  --help             Shows brief help
 --info                  Show info about sdk, arch, etc
 -i, --install           Start installation, installs jdk and android sdk with cmdline and build tools
@@ -135,21 +130,25 @@ info() {
 install() {
   echo ""
   gen_data
+  unsupported_shell_used=false
 
-  if ! ([[ "${proceed}" = "y" || "${proceed}" = "yes" || "${proceed}" = "Y" || "${proceed}" = "Yes" ]]); then
+  echo "Proceed with Android SDK installation? ([${green}y${nocol}]es/[${red}N${nocol}]o): "
+  read -r proceed
+
+  if [[ ! "${proceed}" =~ ^([Yy]|[Yy][Ee][Ss])$ ]]; then
     echo -e "${red}Aborted!${nocol}"
     exit 1
   fi
 
   echo -e "${green}Downloading sdk files...${nocol}"
   # Download and extract the android SDK
-  download_and_extract "Android SDK" ${sdk_url} ${install_dir} "${install_dir}/${sdk_file}"
+  download_and_extract "Android SDK" "${sdk_url}" "${install_dir}" "${install_dir}/${sdk_file}"
   # Download and extract build tools
-  download_and_extract "Build tools" ${build_tools_url} "${install_dir}/android-sdk" "${install_dir}/${build_tools_file}"
+  download_and_extract "Build tools" "${build_tools_url}" "${install_dir}/android-sdk" "${install_dir}/${build_tools_file}"
   # Download and extract cmdline tools
-  download_and_extract "Command line tools" ${cmdline_tools_url} "${install_dir}/android-sdk" "${install_dir}/${cmdline_tools_file}"
+  download_and_extract "Command line tools" "${cmdline_tools_url}" "${install_dir}/android-sdk" "${install_dir}/${cmdline_tools_file}"
   # Download and extract platform tools
-  download_and_extract "Platform tools" ${platform_tools_url} "${install_dir}/android-sdk" "${install_dir}/${platform_tools_file}"
+  download_and_extract "Platform tools" "${platform_tools_url}" "${install_dir}/android-sdk" "${install_dir}/${platform_tools_file}"
   # Setting env vars
   echo -e "${green}Setting up env vars...${nocol}"
   if [[ "${CURRENT_SHELL}" == "bash" ]]; then
@@ -160,41 +159,57 @@ install() {
     unsupported_shell_used=true
     echo -e "${red}Unsupported shell!${nocol}"
     echo -e "${green}You will need to manually export env vars JAVA_HOME, ANDROID_SDK_ROOT and ANDROID_HOME on every session to use sdk, or add them to your shell profile manually:${nocol}"
-    echo 'export ANDROID_SDK_ROOT=${HOME}/android-sdk'
-    echo 'export ANDROID_HOME=${HOME}/android-sdk'
+    echo "export ANDROID_SDK_ROOT=\${HOME}/android-sdk"
+    echo "export ANDROID_HOME=\${HOME}/android-sdk"
     echo -e "${green}Also do the same for sdk and jdk bin locations:${nocol}"
-    echo 'export PATH=${PREFIX}/opt/openjdk/bin:${HOME}/android-sdk/cmdline-tools/latest/bin:${PATH}'
+    echo "export PATH=\${PREFIX}/opt/openjdk/bin:\${HOME}/android-sdk/cmdline-tools/latest/bin:\${PATH}"
   fi
-  if [[ -z "${unsupported_shell_used}" ]]; then
+  if [[ "${unsupported_shell_used}" = "false" ]]; then
 
-    if [[ -z "${ANDROID_SDK_ROOT}" ]]; then
-      echo -e '\nexport ANDROID_SDK_ROOT=${HOME}/android-sdk\n' >> ${shell_profile}
+    if [[ -z "${ANDROID_SDK_ROOT:-}" ]]; then
+      printf "\nexport ANDROID_SDK_ROOT=\${HOME}/android-sdk\n\n" >> "${shell_profile}"
     else
       echo "ANDROID_SDK_ROOT is already set to: ${ANDROID_SDK_ROOT}"
       echo "Check if the path is correct, it should be: ${install_dir}/android-sdk"
     fi
-    if [[ -z "${ANDROID_HOME}" ]]; then
-      echo -e '\nexport ANDROID_HOME=${HOME}/android-sdk\n' >> ${shell_profile}
+    if [[ -z "${ANDROID_HOME:-}" ]]; then
+      printf "\nexport ANDROID_HOME=\${HOME}/android-sdk\n\n" >> "${shell_profile}"
     else
       echo "ANDROID_HOME is already set to: ${ANDROID_HOME}"
       echo "Check if the path is correct, it should be: ${install_dir}/android-sdk"
     fi
-    echo -e '\nexport PATH=${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}\n' >> ${shell_profile}
+    printf "\nexport PATH=\${ANDROID_HOME}/cmdline-tools/latest/bin:\${ANDROID_HOME}/platform-tools:\${PATH}\n\n" >> "${shell_profile}"
   fi
   apt clean
 }
 
 
 banner
-if [[ ! -d ${install_dir} ]]; then
-    echo -e "${red}Your install directory doesn't exists!${nocol}"
-    echo "If you didnt change in script then that means your home directory doesn't exist, in that case there's something wrong with your termux installation, please reinstall termux!"
-    echo "Else if you've changed install directory var to something else make sure it exists!"
-    exit 1
+if [[ ! -d "${install_dir}" ]]; then
+  echo -e "${red}Your install directory doesn't exists!${nocol}"
+  echo "If you didnt change in script then that means your home directory doesn't exist, in that case there's something wrong with your termux installation, please reinstall termux!"
+  echo "Else if you've changed install directory var to something else make sure it exists!"
+  exit 1
 fi
-install
-echo -e "${green}Installed Android SDK!${nocol}"
-echo -e "${green}Please restart termux${nocol}${red}!${nocol}"
-echo ""
-exit 0
 
+case "${1:-}" in
+  -h|--help)
+    help
+    ;;
+  --info)
+    info
+    ;;
+  -i|--install|"")
+    install
+    echo -e "${green}Installed Android SDK!${nocol}"
+    echo -e "${green}Please restart termux${nocol}${red}!${nocol}"
+    echo ""
+    ;;
+  *)
+    echo -e "${red}Unknown option: ${1}${nocol}"
+    help
+    exit 1
+    ;;
+esac
+
+exit 0
