@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+mkdir -p "$HOME/apps"
+
 # Inklecate java
 APP_VERSION="$(
   curl -fsSL "https://api.github.com/repos/bladecoder/blade-ink-java/releases/latest" \
