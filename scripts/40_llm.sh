@@ -1,7 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-pip install llm
-llm install llm-openrouter
-llm models default openrouter/x-ai/grok-4-fast:free
+pkg install -y python
+python -m pip install --upgrade pip
+python -m pip install llm llm-openrouter llm-github-copilot
 
-echo "Run 'llm keys set openrouter' to configure Openrouter as your default model!"
+# Authenticate GitHub Copilot CLI for use in the terminal.
+# llm github_copilot auth login

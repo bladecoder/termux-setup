@@ -1,76 +1,66 @@
 # termux-setup
 
-Opinionated scripts to bootstrap an Termux environment.
+Opinionated scripts to bootstrap a Termux environment.
 
-This repository contains **my personal, opinionated setup** to configure a clean Termux installation from scratch using automated scripts.
-It is designed to be **reproducible**, **scriptable**, and easy to re-run after a fresh install or device reset.
+## Platform support
 
----
+- Core flow (`./setup.sh`): **Termux only**
+- Optional scripts under `scripts/optional/`: extra installers (Termux and Ubuntu/Debian)
 
-## ✨ Features
+If `pkg` is not available, `setup.sh` exits with an explicit message.
 
-- Automated bootstrap from a clean Termux install
-- Opinionated configuration (tools, defaults, preferences)
-- Idempotent scripts (safe to re-run)
-- Public and reusable
-- Minimal manual steps
+## Installation
 
----
-
-## 🚀 Installation
-
-You can install the setup in one of the following ways.
-
-### Option 1: One-command bootstrap (recommended)
+### Option 1: One-command bootstrap
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/bladecoder/termux-setup/main/bootstrap.sh | sh
 ```
 
-This will:
+### Option 2: Clone and run
 
-- Download the bootstrap script
-- Install required dependencies
-- Apply the configured setup automatically
-
-### Option 2: Clone the repository
-
-```
+```sh
 git clone https://github.com/bladecoder/termux-setup.git
 cd termux-setup
 ./setup.sh
 ```
 
-Use this option if you want to inspect or customize the scripts before running them.
+Run commands from the repo root so paths like `./configs/...` resolve correctly.
 
-## 🧠 Philosophy
+## Environment controls
 
-This setup is intentionally opinionated.
+The core scripts support these environment variables:
 
-It reflects:
+- `TERMUX_SETUP_STORAGE=auto|always|never` (default: `auto`)
+- `CHANGE_SHELL=auto|always|never` (default: `auto`)
+- `VERIFY_DOWNLOADS=1|0` (default: `0`)
 
-- My preferred tools and defaults
-- My workflow and priorities
+Examples:
 
-What I personally want after a clean install
-
-You are encouraged to fork it, adapt it, or use it as inspiration for your own setup.
-
-## 📁 Repository Structure
-
-```
-.
-├── bootstrap.sh      # Entry point for one-command install
-├── setup.sh          # Main setup logic
-├── scripts/          # Modular setup scripts
-├── configs/          # Configuration files
-└── README.md
+```sh
+TERMUX_SETUP_STORAGE=never CHANGE_SHELL=never ./setup.sh
 ```
 
-## 🔄 Re-running
+```sh
+VERIFY_DOWNLOADS=1 NVIM_TAR_SHA256="<sha256>" bash scripts/optional/neovim.sh
+```
 
-All scripts are designed to be safely re-run.
-If something changes or breaks, you should be able to run the setup again without issues.
+```sh
+VERIFY_DOWNLOADS=1 ANDROID_CMDLINE_TOOLS_SHA256="<sha256>" bash scripts/optional/android-sdk.sh
+```
+
+## Optional scripts
+
+- `scripts/optional/neovim.sh`
+- `scripts/optional/android-sdk.sh`
+- `scripts/optional/btop.sh`
+- `scripts/optional/proot.sh`
+
+These are not executed by `setup.sh`.
+
+## Re-running
+
+Scripts are designed to be re-runnable. You can execute a single module:
 
 ```sh
 bash scripts/30_vim.sh

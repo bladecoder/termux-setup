@@ -1,17 +1,27 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Install mise for managing multiple versions of languages. See https://mise.jdx.dev/
-sudo apt update -y && sudo apt install -y gpg wget curl
-sudo install -dm 755 /etc/apt/keyrings
-wget -qO - https://mise.jdx.dev/gpg-key.pub | gpg --dearmor | sudo tee /etc/apt/keyrings/mise-archive-keyring.gpg 1>/dev/null
-echo "deb [signed-by=/etc/apt/keyrings/mise-archive-keyring.gpg arch=$(dpkg --print-architecture)] https://mise.jdx.dev/deb stable main" | sudo tee /etc/apt/sources.list.d/mise.list
-sudo apt update
-sudo apt install -y mise
+if ! command -v pkg >/dev/null 2>&1; then
+    echo "This installer requires Termux (pkg)." >&2
+    exit 1
+fi
 
-# Install default programming languages
+install_first_available() {
+    package_label="$1"
+    shift
 
-# mise use --global node@lts
-mise use --global python@latest
-mise use --global java@latest
-mise use --global rust
-mise use --global node@lts
+    for package_name in "$@"; do
+        if pkg install -y "$package_name"; then
+            echo "Installed ${package_label} with package: ${package_name}"
+            return 0
+        fi
+    done
+
+    echo "Could not install ${package_label}. Tried: $*" >&2
+    return 1
+}
+
+# Install programming languages previously managed by mise.
+pkg install -y python rust
+install_first_available "Java" openjdk-21 openjdk-17 openjdk-11 openjdk
+install_first_available "Node.js" nodejs-lts nodejs

@@ -2,7 +2,14 @@
 set -eu
 
 REPO_URL="https://github.com/bladecoder/termux-setup.git"
-WORKDIR="${TMPDIR:-/tmp}/termux-setup"
+WORKDIR="$(mktemp -d "${TMPDIR:-/tmp}/termux-setup.XXXXXX")"
+
+cleanup() {
+  if [ -n "${WORKDIR:-}" ] && [ -d "${WORKDIR}" ]; then
+    rm -rf "${WORKDIR}"
+  fi
+}
+trap cleanup EXIT INT TERM
 
 if ! command -v git >/dev/null 2>&1; then
   echo "Installing git..."
@@ -22,7 +29,6 @@ if ! command -v git >/dev/null 2>&1; then
   fi
 fi
 
-rm -rf "${WORKDIR}"
 git clone --depth 1 "${REPO_URL}" "${WORKDIR}"
 
 cd "${WORKDIR}"

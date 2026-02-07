@@ -1,0 +1,28 @@
+name: Shell Checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  shell-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Bash syntax check
+        run: |
+          bash -n bootstrap.sh
+          bash -n setup.sh
+          for f in scripts/*.sh scripts/optional/*.sh; do
+            [ -f "$f" ] || continue
+            bash -n "$f"
+          done
+
+      - name: Shellcheck
+        run: |
+          shellcheck bootstrap.sh setup.sh scripts/*.sh scripts/optional/*.sh
